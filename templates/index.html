@@ -393,6 +393,7 @@
     <div class="location-badge">
       <div class="dot"></div>
       <span id="loc-text">Standort wird ermittelt …</span>
+      <button onclick="relocate()" style="margin-left:8px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;font-size:0.75rem;">📍 GPS</button>
     </div>
   </div>
 </header>
@@ -758,6 +759,34 @@ function sortTable(tab, col) {
   }
   if (tab === 'de') renderStations();
   else renderEU();
+}
+
+// ── GPS neu bestimmen ─────────────────────────────────
+async function relocate() {
+  document.getElementById('loc-text').textContent = '📍 GPS wird abgefragt …';
+  if (!navigator.geolocation) {
+    document.getElementById('loc-text').textContent = '⚠️ GPS nicht verfügbar';
+    return;
+  }
+  try {
+    const pos = await new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        timeout: 10000,
+        maximumAge: 0,
+        enableHighAccuracy: true
+      })
+    );
+    userLocation = {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      city: '', region: '', country: 'Germany', countryCode: 'DE'
+    };
+    document.getElementById('loc-text').textContent =
+      `📍 GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+    loadStations();
+  } catch(e) {
+    document.getElementById('loc-text').textContent = `⚠️ GPS Fehler: ${e.message}`;
+  }
 }
 
 // ── Start ──────────────────────────────────────────────
