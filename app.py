@@ -54,11 +54,12 @@ def get_location_from_ip(ip):
     if data.get("status") != "success":
         raise Exception("Standort nicht ermittelbar")
     return {
-        "lat":     data["lat"],
-        "lng":     data["lon"],
-        "city":    data.get("city", ""),
-        "region":  data.get("regionName", ""),
-        "country": data.get("country", ""),
+        "lat":         data["lat"],
+        "lng":         data["lon"],
+        "city":        data.get("city", ""),
+        "region":      data.get("regionName", ""),
+        "country":     data.get("country", ""),
+        "countryCode": data.get("countryCode", ""),
     }
 
 
@@ -146,6 +147,38 @@ def api_eu():
     try:
         data = get_eu_prices()
         return jsonify({"ok": True, "data": data})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/reversegeo")
+def api_reversegeo():
+    """Stadtname via Koordinaten ermitteln (für GPS-Standort)."""
+    try:
+        lat = request.args.get("lat")
+        lng = request.args.get("lng")
+        resp = requests.get(
+            f"http://ip-api.com/json/?fields=city,regionName,country,countryCode",
+            timeout=8
+        )
+        # ip-api gibt bei Koordinaten-Anfrage keinen direkten Endpoint
+        # Wir nutzen nominatim (OpenStreetMap) für Reverse Geocoding
+        resp2 = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lng, "format": "json"},
+            headers={"User-Agent": "SpritpreiseEuropa/1.0"},
+            timeout=8
+        )
+        data = resp2.json()
+        addr = data.get("address", {})
+        country_code = addr.get("country_code", "").upper()
+        return jsonify({
+            "ok": True,
+            "city":        addr.get("city") or addr.get("town") or addr.get("village", ""),
+            "region":      addr.get("state", ""),
+            "country":     addr.get("country", ""),
+            "countryCode": country_code,
+        })
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
