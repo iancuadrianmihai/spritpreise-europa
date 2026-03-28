@@ -583,22 +583,23 @@ async function detectLocation() {
 // ── Prüfe Land → zeige Deutschland-Tab nur in DE ───────
 function checkCountryAndLoadStations() {
   const country = (userLocation.countryCode || userLocation.country || '').toLowerCase();
-  const isGermany = country === 'de' || country === 'germany';
+  // Wenn Land unbekannt → beide Tabs zeigen (sicherer)
+  const isNotGermany = country && country !== '' && country !== 'de' && country !== 'germany';
 
   const tabDe = document.querySelectorAll('.tab')[0];
   const tabEu = document.querySelectorAll('.tab')[1];
   const contentDe = document.getElementById('tab-de');
 
-  if (isGermany) {
-    // Deutschland-Tab anzeigen und Daten laden
-    tabDe.style.display = '';
-    loadStations();
-  } else {
-    // Deutschland-Tab ausblenden, Europa-Tab aktiv
+  if (isNotGermany) {
+    // Eindeutig nicht Deutschland → Tab ausblenden
     tabDe.style.display = 'none';
     tabEu.classList.add('active');
     contentDe.classList.remove('active');
     document.getElementById('tab-eu').classList.add('active');
+  } else {
+    // Deutschland oder unbekannt → beide Tabs zeigen
+    tabDe.style.display = '';
+    loadStations();
   }
 }
 
