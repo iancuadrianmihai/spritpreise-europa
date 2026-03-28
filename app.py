@@ -98,7 +98,7 @@ def get_eu_prices():
 
 @app.route("/")
 def index():
-    return send_from_directory(".", "index.html")
+    return send_from_directory("templates", "index.html")
 
 
 @app.route("/api/location")
