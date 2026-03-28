@@ -393,18 +393,12 @@
         <div class="stat-label">⌀ Diesel</div>
         <div class="stat-value c-amber" id="avg-diesel">—</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">⌀ E10</div>
-        <div class="stat-value c-blue" id="avg-e10">—</div>
-      </div>
+
       <div class="stat-card">
         <div class="stat-label">💚 Günstigstes Diesel</div>
         <div class="stat-value c-green" id="min-diesel">—</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">💚 Günstigstes E10</div>
-        <div class="stat-value c-blue" id="min-e10">—</div>
-      </div>
+
       <div class="stat-card">
         <div class="stat-label">Tankstellen</div>
         <div class="stat-value c-muted" id="count">—</div>
@@ -413,26 +407,24 @@
 
     <div class="table-wrap">
       <div class="table-header">
-        <span class="table-title">Tankstellen im 50 km-Umkreis</span>
+        <span class="table-title">Tankstellen im 30 km-Umkreis</span>
         <button class="refresh-btn" id="btn-refresh-de" onclick="loadStations()">🔄 Aktualisieren</button>
       </div>
       <div class="scroll-x">
         <table id="table-de">
           <thead>
             <tr>
-              <th onclick="sortTable('de','name')">Name</th>
               <th onclick="sortTable('de','brand')">Marke</th>
               <th onclick="sortTable('de','street')">Straße</th>
               <th onclick="sortTable('de','place')">Ort</th>
               <th onclick="sortTable('de','diesel')">Diesel</th>
-              <th onclick="sortTable('de','e10')">E10</th>
               <th onclick="sortTable('de','e5')">E5</th>
               <th onclick="sortTable('de','dist')">Entfernung</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="tbody-de">
-            <tr><td colspan="9"><div class="loading"><div class="spinner"></div><br>Standort wird ermittelt …</div></td></tr>
+            <tr><td colspan="7"><div class="loading"><div class="spinner"></div><br>Standort wird ermittelt …</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -515,12 +507,45 @@ function switchTab(id) {
 // ── Init ───────────────────────────────────────────────
 async function init() {
   await detectLocation();
-  loadStations();
   loadEU();
 }
 
-// ── Standort erkennen ──────────────────────────────────
+// ── Standort erkennen: GPS zuerst, dann IP ─────────────
 async function detectLocation() {
+  document.getElementById('loc-text').textContent = '📍 Standort wird ermittelt …';
+
+  // 1. Versuche GPS (Browser fragt nach Erlaubnis)
+  if (navigator.geolocation) {
+    try {
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, {timeout: 8000})
+      );
+      userLocation = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        city: '', region: '', country: ''
+      };
+      // Reverse geocode via ip-api für Stadtname
+      try {
+        const res = await fetch(`/api/reversegeo?lat=${userLocation.lat}&lng=${userLocation.lng}`);
+        const data = await res.json();
+        if (data.ok) {
+          userLocation.city    = data.city;
+          userLocation.region  = data.region;
+          userLocation.country = data.country;
+          userLocation.countryCode = data.countryCode;
+        }
+      } catch(e) {}
+      document.getElementById('loc-text').textContent =
+        `📍 ${userLocation.city}, ${userLocation.region} (GPS)`;
+      checkCountryAndLoadStations();
+      return;
+    } catch(e) {
+      // GPS verweigert oder Fehler → Fallback auf IP
+    }
+  }
+
+  // 2. Fallback: IP-basiert
   try {
     const res = await fetch('/api/location');
     const data = await res.json();
@@ -528,8 +553,31 @@ async function detectLocation() {
     userLocation = data;
     document.getElementById('loc-text').textContent =
       `📍 ${data.city}, ${data.region} (${data.lat.toFixed(4)}, ${data.lng.toFixed(4)})`;
-  } catch (e) {
+    checkCountryAndLoadStations();
+  } catch(e) {
     document.getElementById('loc-text').textContent = '⚠️ Standort nicht ermittelbar';
+  }
+}
+
+// ── Prüfe Land → zeige Deutschland-Tab nur in DE ───────
+function checkCountryAndLoadStations() {
+  const country = (userLocation.countryCode || userLocation.country || '').toLowerCase();
+  const isGermany = country === 'de' || country === 'germany';
+
+  const tabDe = document.querySelectorAll('.tab')[0];
+  const tabEu = document.querySelectorAll('.tab')[1];
+  const contentDe = document.getElementById('tab-de');
+
+  if (isGermany) {
+    // Deutschland-Tab anzeigen und Daten laden
+    tabDe.style.display = '';
+    loadStations();
+  } else {
+    // Deutschland-Tab ausblenden, Europa-Tab aktiv
+    tabDe.style.display = 'none';
+    tabEu.classList.add('active');
+    contentDe.classList.remove('active');
+    document.getElementById('tab-eu').classList.add('active');
   }
 }
 
@@ -540,10 +588,10 @@ async function loadStations() {
   btn.disabled = true;
   btn.textContent = '⏳ Lädt …';
   document.getElementById('tbody-de').innerHTML =
-    '<tr><td colspan="9"><div class="loading"><div class="spinner"></div><br>Lade Tankstellen …</div></td></tr>';
+    '<tr><td colspan="7"><div class="loading"><div class="spinner"></div><br>Lade Tankstellen …</div></td></tr>';
 
   try {
-    const res = await fetch(`/api/stations?lat=${userLocation.lat}&lng=${userLocation.lng}&rad=50`);
+    const res = await fetch(`/api/stations?lat=${userLocation.lat}&lng=${userLocation.lng}&rad=30`);
     const data = await res.json();
     if (!data.ok) throw new Error(data.error);
     stationsData = data.stations;
@@ -552,7 +600,7 @@ async function loadStations() {
       `✔ ${stationsData.length} Tankstellen geladen · ${new Date().toLocaleTimeString('de-DE')}`;
   } catch (e) {
     document.getElementById('tbody-de').innerHTML =
-      `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--red)">❌ Fehler: ${e.message}</td></tr>`;
+      `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--red)">❌ Fehler: ${e.message}</td></tr>`;
   }
   btn.disabled = false;
   btn.textContent = '🔄 Aktualisieren';
@@ -579,9 +627,7 @@ function renderStations() {
   // Stat cards
   const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(3)+' €' : '—';
   document.getElementById('avg-diesel').textContent = avg(openD);
-  document.getElementById('avg-e10').textContent    = avg(openE);
   document.getElementById('min-diesel').textContent = minD ? minD.toFixed(3)+' €' : '—';
-  document.getElementById('min-e10').textContent    = minE ? minE.toFixed(3)+' €' : '—';
   document.getElementById('count').textContent      = stationsData.length;
 
   const fp = v => typeof v === 'number' ? v.toFixed(3)+' €' : '—';
@@ -594,19 +640,17 @@ function renderStations() {
     const dCls = isBestD ? 'price-best' : isWorstD ? 'price-worst' : '';
 
     return `<tr>
-      <td class="name ${cls}">${s.name || '—'}</td>
-      <td class="${cls}">${s.brand || '—'}</td>
+      <td class="name ${cls}">${s.brand || '—'}</td>
       <td class="${cls}">${s.street ? s.street + (s.houseNumber ? ' ' + s.houseNumber : '') : '—'}</td>
       <td class="${cls}">${s.place || '—'}</td>
       <td class="${dCls} ${cls}">${fp(s.diesel)}</td>
-      <td class="${cls}">${fp(s.e10)}</td>
       <td class="${cls}">${fp(s.e5)}</td>
       <td class="${cls}">${typeof s.dist === 'number' ? s.dist.toFixed(1)+' km' : '—'}</td>
       <td>${open ? '<span class="badge-open">✔ offen</span>' : '<span class="badge-closed">✘ zu</span>'}</td>
     </tr>`;
   }).join('');
 
-  document.getElementById('tbody-de').innerHTML = rows || '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted)">Keine Tankstellen gefunden</td></tr>';
+  document.getElementById('tbody-de').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">Keine Tankstellen gefunden</td></tr>';
 }
 
 // ── EU-Preise laden ────────────────────────────────────
