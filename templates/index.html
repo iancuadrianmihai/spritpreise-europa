@@ -390,6 +390,7 @@
 <header>
   <div class="wrap header-inner">
     <div class="logo">⛽ <span>Sprit</span>preise Europa</div>
+    <button id="lang-btn" onclick="toggleLang()" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 14px;cursor:pointer;font-family:inherit;font-size:0.85rem;font-weight:600;">🇬🇧 EN</button>
     <div class="location-badge">
       <div class="dot"></div>
       <span id="loc-text">Standort wird ermittelt …</span>
@@ -787,6 +788,152 @@ async function relocate() {
   } catch(e) {
     document.getElementById('loc-text').textContent = `⚠️ GPS Fehler: ${e.message}`;
   }
+}
+
+// ── Übersetzungen ─────────────────────────────────────
+const TRANSLATIONS = {
+  de: {
+    tab_de: '🇩🇪 Deutschland',
+    tab_eu: '🌍 Europa (EU)',
+    locating: 'Standort wird ermittelt …',
+    gps_querying: '📍 GPS wird abgefragt …',
+    gps_error: '⚠️ GPS Fehler: ',
+    gps_na: '⚠️ GPS nicht verfügbar',
+    avg_diesel: '⌀ Diesel',
+    avg_e5: '⌀ E5',
+    best_diesel: '💚 Günstigstes Diesel',
+    best_e5: '💚 Günstigstes E5',
+    stations: 'Tankstellen',
+    radius: 'Tankstellen im 30 km-Umkreis',
+    refresh: '🔄 Aktualisieren',
+    col_diesel: 'Diesel',
+    col_e5: 'E5',
+    col_brand: 'Marke',
+    col_city: 'Ort',
+    col_street: 'Straße',
+    col_status: 'Status',
+    open: '✔',
+    closed: '✘',
+    cheap_diesel: '💚 Günstigstes Diesel',
+    exp_diesel: '❤️ Teuerstes Diesel',
+    cheap_petrol: '💚 Günstigstes Benzin',
+    exp_petrol: '❤️ Teuerstes Benzin',
+    eu_source: 'EU-Kommission Oil Bulletin · wöchentliche Daten',
+    col_country: 'Land',
+    col_diesel_eu: 'Diesel (€/L)',
+    col_petrol_eu: 'Benzin E95 (€/L)',
+    col_diff_d: 'Δ DE Diesel',
+    col_diff_p: 'Δ DE Benzin',
+    footer: 'Datenquellen: Tankerkönig (Bundeskartellamt) · EU-Kommission Oil Bulletin · ip-api.com',
+    no_stations: 'Keine Tankstellen gefunden',
+    loading_stations: 'Lade Tankstellen …',
+    loading_loc: 'Standort wird ermittelt …',
+    gps_btn: '📍 GPS',
+    lang_btn: '🇬🇧 EN',
+  },
+  en: {
+    tab_de: '🇩🇪 Germany',
+    tab_eu: '🌍 Europe (EU)',
+    locating: 'Detecting location …',
+    gps_querying: '📍 Querying GPS …',
+    gps_error: '⚠️ GPS Error: ',
+    gps_na: '⚠️ GPS not available',
+    avg_diesel: '⌀ Diesel',
+    avg_e5: '⌀ E5',
+    best_diesel: '💚 Cheapest Diesel',
+    best_e5: '💚 Cheapest E5',
+    stations: 'Stations',
+    radius: 'Stations within 30 km',
+    refresh: '🔄 Refresh',
+    col_diesel: 'Diesel',
+    col_e5: 'E5',
+    col_brand: 'Brand',
+    col_city: 'City',
+    col_street: 'Street',
+    col_status: 'Status',
+    open: '✔',
+    closed: '✘',
+    cheap_diesel: '💚 Cheapest Diesel',
+    exp_diesel: '❤️ Most Expensive Diesel',
+    cheap_petrol: '💚 Cheapest Petrol',
+    exp_petrol: '❤️ Most Expensive Petrol',
+    eu_source: 'EU Commission Oil Bulletin · weekly data',
+    col_country: 'Country',
+    col_diesel_eu: 'Diesel (€/L)',
+    col_petrol_eu: 'Petrol E95 (€/L)',
+    col_diff_d: 'Δ DE Diesel',
+    col_diff_p: 'Δ DE Petrol',
+    footer: 'Data sources: Tankerkönig (German Federal Cartel Office) · EU Commission Oil Bulletin · ip-api.com',
+    no_stations: 'No stations found',
+    loading_stations: 'Loading stations …',
+    loading_loc: 'Detecting location …',
+    gps_btn: '📍 GPS',
+    lang_btn: '🇩🇪 DE',
+  }
+};
+
+let currentLang = 'de';
+
+function t(key) {
+  return TRANSLATIONS[currentLang][key] || key;
+}
+
+function toggleLang() {
+  currentLang = currentLang === 'de' ? 'en' : 'de';
+  applyLang();
+}
+
+function applyLang() {
+  const T = TRANSLATIONS[currentLang];
+  // Lang button
+  document.getElementById('lang-btn').textContent = T.lang_btn;
+  // Tabs
+  document.querySelectorAll('.tab')[0].textContent = T.tab_de;
+  document.querySelectorAll('.tab')[1].textContent = T.tab_eu;
+  // Stat cards
+  document.querySelector('[data-i="avg_diesel"]') && (document.querySelector('[data-i="avg_diesel"]').textContent = T.avg_diesel);
+  // Table headers DE
+  const thsDe = document.querySelectorAll('#table-de thead th');
+  if (thsDe.length >= 6) {
+    thsDe[0].textContent = T.col_diesel;
+    thsDe[1].textContent = T.col_e5;
+    thsDe[2].textContent = T.col_brand;
+    thsDe[3].textContent = T.col_city;
+    thsDe[4].textContent = T.col_street;
+    thsDe[5].textContent = T.col_status;
+  }
+  // Table headers EU
+  const thsEu = document.querySelectorAll('#table-eu thead th');
+  if (thsEu.length >= 5) {
+    thsEu[0].textContent = T.col_country;
+    thsEu[1].textContent = T.col_diesel_eu;
+    thsEu[2].textContent = T.col_petrol_eu;
+    thsEu[3].textContent = T.col_diff_d;
+    thsEu[4].textContent = T.col_diff_p;
+  }
+  // Stat labels
+  const labels = document.querySelectorAll('.stat-label');
+  const labelKeys = ['avg_diesel', 'avg_e5', 'best_diesel', 'stations'];
+  labels.forEach((el, i) => { if (labelKeys[i]) el.textContent = T[labelKeys[i]]; });
+  // Table title
+  const title = document.querySelector('.table-title');
+  if (title) title.textContent = T.radius;
+  // Refresh button
+  const btn = document.getElementById('btn-refresh-de');
+  if (btn) btn.textContent = T.refresh;
+  // EU source
+  const euSrc = document.querySelectorAll('.table-title')[1];
+  if (euSrc) euSrc.textContent = T.eu_source;
+  // EU highlight labels
+  const euLabels = document.querySelectorAll('.eu-card-label');
+  const euKeys = ['cheap_diesel','exp_diesel','cheap_petrol','exp_petrol'];
+  euLabels.forEach((el, i) => { if (euKeys[i]) el.textContent = T[euKeys[i]]; });
+  // Footer
+  const footer = document.querySelector('footer');
+  if (footer) footer.textContent = T.footer;
+  // Re-render tables to update open/closed badges
+  if (stationsData.length) renderStations();
+  if (euData.length) renderEU();
 }
 
 // ── Start ──────────────────────────────────────────────
