@@ -220,7 +220,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 0.82rem;
-    min-width: 600px;
+    min-width: 400px;
   }
 
   thead th {
@@ -351,10 +351,30 @@
   }
 
   /* ── Mobile ── */
-  @media (max-width: 600px) {
-    .logo { font-size: 1.2rem; }
-    .stat-value { font-size: 1.3rem; }
-    .tab { padding: 8px 14px; font-size: 0.78rem; }
+  @media (max-width: 768px) {
+    .logo { font-size: 1.1rem; }
+    .stat-value { font-size: 1.2rem; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-card { padding: 12px 10px; }
+    .stat-label { font-size: 0.65rem; }
+    .tab { padding: 8px 12px; font-size: 0.78rem; }
+    .eu-highlights { grid-template-columns: repeat(2, 1fr); }
+    table { font-size: 0.78rem; }
+    thead th { padding: 8px 10px; font-size: 0.65rem; }
+    td { padding: 10px; }
+    .header-inner { gap: 8px; }
+    .location-badge { font-size: 0.72rem; padding: 5px 10px; }
+    .refresh-btn { padding: 6px 10px; font-size: 0.78rem; }
+    .table-header { padding: 10px 12px; }
+    .wrap { padding: 0 10px; }
+  }
+
+  @media (max-width: 480px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .eu-highlights { grid-template-columns: 1fr 1fr; }
+    .logo { font-size: 1rem; }
+    table { font-size: 0.75rem; }
+    td { padding: 8px 8px; }
   }
 
   /* ── Fade in ── */
@@ -414,17 +434,16 @@
         <table id="table-de">
           <thead>
             <tr>
-              <th onclick="sortTable('de','brand')">Marke</th>
-              <th onclick="sortTable('de','street')">Straße</th>
-              <th onclick="sortTable('de','place')">Ort</th>
               <th onclick="sortTable('de','diesel')">Diesel</th>
               <th onclick="sortTable('de','e5')">E5</th>
-              <th onclick="sortTable('de','dist')">Entfernung</th>
+              <th onclick="sortTable('de','brand')">Marke</th>
+              <th onclick="sortTable('de','place')">Ort</th>
+              <th onclick="sortTable('de','street')">Straße</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="tbody-de">
-            <tr><td colspan="7"><div class="loading"><div class="spinner"></div><br>Standort wird ermittelt …</div></td></tr>
+            <tr><td colspan="6"><div class="loading"><div class="spinner"></div><br>Standort wird ermittelt …</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -588,7 +607,7 @@ async function loadStations() {
   btn.disabled = true;
   btn.textContent = '⏳ Lädt …';
   document.getElementById('tbody-de').innerHTML =
-    '<tr><td colspan="7"><div class="loading"><div class="spinner"></div><br>Lade Tankstellen …</div></td></tr>';
+    '<tr><td colspan="6"><div class="loading"><div class="spinner"></div><br>Lade Tankstellen …</div></td></tr>';
 
   try {
     const res = await fetch(`/api/stations?lat=${userLocation.lat}&lng=${userLocation.lng}&rad=30`);
@@ -600,7 +619,7 @@ async function loadStations() {
       `✔ ${stationsData.length} Tankstellen geladen · ${new Date().toLocaleTimeString('de-DE')}`;
   } catch (e) {
     document.getElementById('tbody-de').innerHTML =
-      `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--red)">❌ Fehler: ${e.message}</td></tr>`;
+      `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--red)">❌ Fehler: ${e.message}</td></tr>`;
   }
   btn.disabled = false;
   btn.textContent = '🔄 Aktualisieren';
@@ -640,17 +659,16 @@ function renderStations() {
     const dCls = isBestD ? 'price-best' : isWorstD ? 'price-worst' : '';
 
     return `<tr>
-      <td class="name ${cls}">${s.brand || '—'}</td>
-      <td class="${cls}">${s.street ? s.street + (s.houseNumber ? ' ' + s.houseNumber : '') : '—'}</td>
-      <td class="${cls}">${s.place || '—'}</td>
-      <td class="${dCls} ${cls}">${fp(s.diesel)}</td>
+      <td class="${dCls} ${cls}" style="font-weight:700">${fp(s.diesel)}</td>
       <td class="${cls}">${fp(s.e5)}</td>
-      <td class="${cls}">${typeof s.dist === 'number' ? s.dist.toFixed(1)+' km' : '—'}</td>
-      <td>${open ? '<span class="badge-open">✔ offen</span>' : '<span class="badge-closed">✘ zu</span>'}</td>
+      <td class="${cls}">${s.brand || '—'}</td>
+      <td class="${cls}">${s.place || '—'}</td>
+      <td class="${cls}">${s.street ? s.street + (s.houseNumber ? ' ' + s.houseNumber : '') : '—'}</td>
+      <td>${open ? '<span class="badge-open">✔</span>' : '<span class="badge-closed">✘</span>'}</td>
     </tr>`;
   }).join('');
 
-  document.getElementById('tbody-de').innerHTML = rows || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">Keine Tankstellen gefunden</td></tr>';
+  document.getElementById('tbody-de').innerHTML = rows || '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Keine Tankstellen gefunden</td></tr>';
 }
 
 // ── EU-Preise laden ────────────────────────────────────
