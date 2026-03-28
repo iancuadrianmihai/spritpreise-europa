@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⛽ Spritpreise Europa</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #080c10;
+    --bg2:      #0f1419;
+    --bg3:      #161d26;
+    --card:     #111820;
+    --border:   #1e2a38;
+    --blue:     #3b9eff;
+    --green:    #22d47b;
+    --red:      #ff4d6a;
+    --amber:    #ffb340;
+    --text:     #dce8f5;
+    --muted:    #5a7a99;
+    --dim:      #1e2a38;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Background grid ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    background: rgba(8,12,16,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .logo span { color: var(--amber); }
+
+  .location-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  .location-badge .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  #loc-text { color: var(--text); }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin: 28px 0 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    padding: 10px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: -1px;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Stat Cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .c-amber { color: var(--amber); }
+  .c-blue  { color: var(--blue); }
+  .c-green { color: var(--green); }
+  .c-red   { color: var(--red); }
+  .c-muted { color: var(--muted); }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .table-title {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .refresh-btn:hover { background: #2a7fd4; }
+  .refresh-btn:disabled { background: var(--dim); color: var(--muted); cursor: not-allowed; }
+
+  .scroll-x { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    min-width: 600px;
+  }
+
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  thead th:hover { color: var(--text); }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30,42,56,0.5);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: rgba(59,158,255,0.05); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 11px 16px;
+    white-space: nowrap;
+  }
+
+  td.name { font-weight: 600; color: var(--text); }
+  td.closed { color: var(--muted) !important; }
+
+  .badge-open {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(34,212,123,0.15);
+    color: var(--green);
+  }
+
+  .badge-closed {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(90,122,153,0.15);
+    color: var(--muted);
+  }
+
+  .price-best { color: var(--green); font-weight: 700; }
+  .price-worst { color: var(--red); }
+
+  /* ── EU Highlights ── */
+  .eu-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .eu-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+
+  .eu-card-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .eu-card-country {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .eu-card-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 0 4px;
+    min-height: 20px;
+  }
+
+  /* ── Loading ── */
+  .loading {
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 28px; height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 600px) {
+    .logo { font-size: 1.2rem; }
+    .stat-value { font-size: 1.3rem; }
+    .tab { padding: 8px 14px; font-size: 0.78rem; }
+  }
+
+  /* ── Fade in ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeUp 0.4s ease forwards; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-inner">
+    <div class="logo">⛽ <span>Sprit</span>preise Europa</div>
+    <div class="location-badge">
+      <div class="dot"></div>
+      <span id="loc-text">Standort wird ermittelt …</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('de')">🇩🇪 Deutschland</button>
+    <button class="tab" onclick="switchTab('eu')">🌍 Europa (EU)</button>
+  </div>
+
+  <!-- ── Tab: Deutschland ── -->
+  <div id="tab-de" class="tab-content active">
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">⌀ Diesel</div>
+        <div class="stat-value c-amber" id="avg-diesel">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">⌀ E10</div>
+        <div class="stat-value c-blue" id="avg-e10">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">💚 Günstigstes Diesel</div>
+        <div class="stat-value c-green" id="min-diesel">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">💚 Günstigstes E10</div>
+        <div class="stat-value c-blue" id="min-e10">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tankstellen</div>
+        <div class="stat-value c-muted" id="count">—</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <span class="table-title">Tankstellen im 50 km-Umkreis</span>
+        <button class="refresh-btn" id="btn-refresh-de" onclick="loadStations()">🔄 Aktualisieren</button>
+      </div>
+      <div class="scroll-x">
+        <table id="table-de">
+          <thead>
+            <tr>
+              <th onclick="sortTable('de','name')">Name</th>
+              <th onclick="sortTable('de','brand')">Marke</th>
+              <th onclick="sortTable('de','street')">Straße</th>
+              <th onclick="sortTable('de','place')">Ort</th>
+              <th onclick="sortTable('de','diesel')">Diesel</th>
+              <th onclick="sortTable('de','e10')">E10</th>
+              <th onclick="sortTable('de','e5')">E5</th>
+              <th onclick="sortTable('de','dist')">Entfernung</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-de">
+            <tr><td colspan="9"><div class="loading"><div class="spinner"></div><br>Standort wird ermittelt …</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="status-bar" id="status-de"></div>
+  </div>
+
+  <!-- ── Tab: Europa ── -->
+  <div id="tab-eu" class="tab-content">
+
+    <div class="eu-highlights">
+      <div class="eu-card">
+        <div class="eu-card-label">💚 Günstigstes Diesel</div>
+        <div class="eu-card-country c-green" id="eu-cheap-d-country">—</div>
+        <div class="eu-card-price c-green" id="eu-cheap-d-price">—</div>
+      </div>
+      <div class="eu-card">
+        <div class="eu-card-label">❤️ Teuerstes Diesel</div>
+        <div class="eu-card-country c-red" id="eu-exp-d-country">—</div>
+        <div class="eu-card-price c-red" id="eu-exp-d-price">—</div>
+      </div>
+      <div class="eu-card">
+        <div class="eu-card-label">💚 Günstigstes Benzin</div>
+        <div class="eu-card-country c-green" id="eu-cheap-p-country">—</div>
+        <div class="eu-card-price c-green" id="eu-cheap-p-price">—</div>
+      </div>
+      <div class="eu-card">
+        <div class="eu-card-label">❤️ Teuerstes Benzin</div>
+        <div class="eu-card-country c-red" id="eu-exp-p-country">—</div>
+        <div class="eu-card-price c-red" id="eu-exp-p-price">—</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <span class="table-title">EU-Kommission Oil Bulletin · wöchentliche Daten</span>
+        <button class="refresh-btn" onclick="loadEU()">🔄 Aktualisieren</button>
+      </div>
+      <div class="scroll-x">
+        <table id="table-eu">
+          <thead>
+            <tr>
+              <th onclick="sortTable('eu','country')">Land</th>
+              <th onclick="sortTable('eu','diesel')">Diesel (€/L)</th>
+              <th onclick="sortTable('eu','euro95')">Benzin E95 (€/L)</th>
+              <th onclick="sortTable('eu','diff_d')">Δ DE Diesel</th>
+              <th onclick="sortTable('eu','diff_p')">Δ DE Benzin</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-eu">
+            <tr><td colspan="5"><div class="loading"><div class="spinner"></div><br>Lade EU-Preise …</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="status-bar" id="status-eu"></div>
+  </div>
+
+</div>
+
+<footer>
+  Datenquellen: Tankerkönig (Bundeskartellamt) · EU-Kommission Oil Bulletin · ip-api.com
+</footer>
+
+<script>
+// ── State ──────────────────────────────────────────────
+let userLocation = null;
+let stationsData = [];
+let euData = [];
+let sortState = { de: { col: 'diesel', asc: true }, eu: { col: 'diesel', asc: true } };
+
+// ── Tab Switching ──────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab')[id === 'de' ? 0 : 1].classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+// ── Init ───────────────────────────────────────────────
+async function init() {
+  await detectLocation();
+  loadStations();
+  loadEU();
+}
+
+// ── Standort erkennen ──────────────────────────────────
+async function detectLocation() {
+  try {
+    const res = await fetch('/api/location');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    userLocation = data;
+    document.getElementById('loc-text').textContent =
+      `📍 ${data.city}, ${data.region} (${data.lat.toFixed(4)}, ${data.lng.toFixed(4)})`;
+  } catch (e) {
+    document.getElementById('loc-text').textContent = '⚠️ Standort nicht ermittelbar';
+  }
+}
+
+// ── Tankstellen laden ──────────────────────────────────
+async function loadStations() {
+  if (!userLocation) return;
+  const btn = document.getElementById('btn-refresh-de');
+  btn.disabled = true;
+  btn.textContent = '⏳ Lädt …';
+  document.getElementById('tbody-de').innerHTML =
+    '<tr><td colspan="9"><div class="loading"><div class="spinner"></div><br>Lade Tankstellen …</div></td></tr>';
+
+  try {
+    const res = await fetch(`/api/stations?lat=${userLocation.lat}&lng=${userLocation.lng}&rad=50`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    stationsData = data.stations;
+    renderStations();
+    document.getElementById('status-de').textContent =
+      `✔ ${stationsData.length} Tankstellen geladen · ${new Date().toLocaleTimeString('de-DE')}`;
+  } catch (e) {
+    document.getElementById('tbody-de').innerHTML =
+      `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--red)">❌ Fehler: ${e.message}</td></tr>`;
+  }
+  btn.disabled = false;
+  btn.textContent = '🔄 Aktualisieren';
+}
+
+function renderStations() {
+  const col = sortState.de.col;
+  const asc = sortState.de.asc;
+
+  const sorted = [...stationsData].sort((a, b) => {
+    let va = a[col] ?? 9999, vb = b[col] ?? 9999;
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    return asc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+  });
+
+  // Preisextreme für offene Stationen
+  const openD = sorted.filter(s => s.isOpen && typeof s.diesel === 'number').map(s => s.diesel);
+  const openE = sorted.filter(s => s.isOpen && typeof s.e10 === 'number').map(s => s.e10);
+  const minD = openD.length ? Math.min(...openD) : null;
+  const maxD = openD.length ? Math.max(...openD) : null;
+  const minE = openE.length ? Math.min(...openE) : null;
+
+  // Stat cards
+  const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(3)+' €' : '—';
+  document.getElementById('avg-diesel').textContent = avg(openD);
+  document.getElementById('avg-e10').textContent    = avg(openE);
+  document.getElementById('min-diesel').textContent = minD ? minD.toFixed(3)+' €' : '—';
+  document.getElementById('min-e10').textContent    = minE ? minE.toFixed(3)+' €' : '—';
+  document.getElementById('count').textContent      = stationsData.length;
+
+  const fp = v => typeof v === 'number' ? v.toFixed(3)+' €' : '—';
+
+  const rows = sorted.map(s => {
+    const open = s.isOpen;
+    const isBestD = open && s.diesel === minD;
+    const isWorstD = open && s.diesel === maxD;
+    const cls = !open ? 'closed' : '';
+    const dCls = isBestD ? 'price-best' : isWorstD ? 'price-worst' : '';
+
+    return `<tr>
+      <td class="name ${cls}">${s.name || '—'}</td>
+      <td class="${cls}">${s.brand || '—'}</td>
+      <td class="${cls}">${s.street ? s.street + (s.houseNumber ? ' ' + s.houseNumber : '') : '—'}</td>
+      <td class="${cls}">${s.place || '—'}</td>
+      <td class="${dCls} ${cls}">${fp(s.diesel)}</td>
+      <td class="${cls}">${fp(s.e10)}</td>
+      <td class="${cls}">${fp(s.e5)}</td>
+      <td class="${cls}">${typeof s.dist === 'number' ? s.dist.toFixed(1)+' km' : '—'}</td>
+      <td>${open ? '<span class="badge-open">✔ offen</span>' : '<span class="badge-closed">✘ zu</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tbody-de').innerHTML = rows || '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted)">Keine Tankstellen gefunden</td></tr>';
+}
+
+// ── EU-Preise laden ────────────────────────────────────
+async function loadEU() {
+  try {
+    const res = await fetch('/api/eu');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    euData = data.data;
+    renderEU();
+    document.getElementById('status-eu').textContent =
+      `✔ EU-Kommission Oil Bulletin · Stand: ${new Date().toLocaleDateString('de-DE')} ${new Date().toLocaleTimeString('de-DE')}`;
+  } catch (e) {
+    document.getElementById('tbody-eu').innerHTML =
+      `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--red)">❌ ${e.message}</td></tr>`;
+  }
+}
+
+function renderEU() {
+  const de = euData.find(d => d.country === 'Germany');
+  const de_d = de?.diesel;
+  const de_p = de?.euro95;
+
+  const validD = euData.filter(d => d.diesel).sort((a,b) => a.diesel - b.diesel);
+  const validP = euData.filter(d => d.euro95).sort((a,b) => a.euro95 - b.euro95);
+
+  // Highlights
+  if (validD.length) {
+    document.getElementById('eu-cheap-d-country').textContent = validD[0].country;
+    document.getElementById('eu-cheap-d-price').textContent   = validD[0].diesel.toFixed(3) + ' €/L';
+    document.getElementById('eu-exp-d-country').textContent   = validD.at(-1).country;
+    document.getElementById('eu-exp-d-price').textContent     = validD.at(-1).diesel.toFixed(3) + ' €/L';
+  }
+  if (validP.length) {
+    document.getElementById('eu-cheap-p-country').textContent = validP[0].country;
+    document.getElementById('eu-cheap-p-price').textContent   = validP[0].euro95.toFixed(3) + ' €/L';
+    document.getElementById('eu-exp-p-country').textContent   = validP.at(-1).country;
+    document.getElementById('eu-exp-p-price').textContent     = validP.at(-1).euro95.toFixed(3) + ' €/L';
+  }
+
+  // Tabelle sortieren
+  const col = sortState.eu.col;
+  const asc = sortState.eu.asc;
+  const cheapD = validD[0]?.diesel;
+  const expD   = validD.at(-1)?.diesel;
+
+  const sorted = [...euData].map(d => ({
+    ...d,
+    diff_d: d.diesel && de_d ? d.diesel - de_d : null,
+    diff_p: d.euro95 && de_p ? d.euro95 - de_p : null,
+  })).sort((a, b) => {
+    let va = a[col] ?? 9999, vb = b[col] ?? 9999;
+    return asc ? va - vb : vb - va;
+  });
+
+  const rows = sorted.map(d => {
+    const isDE    = d.country === 'Germany';
+    const isCheap = d.diesel === cheapD;
+    const isExp   = d.diesel === expD;
+    const rowCls  = isDE ? 'c-blue' : isCheap ? 'c-green' : isExp ? 'c-red' : '';
+    const fd = d.diesel ? d.diesel.toFixed(3)+' €' : '—';
+    const fp = d.euro95 ? d.euro95.toFixed(3)+' €' : '—';
+    const dd = d.diff_d != null ? (d.diff_d >= 0 ? '+' : '') + d.diff_d.toFixed(3)+' €' : '—';
+    const dp = d.diff_p != null ? (d.diff_p >= 0 ? '+' : '') + d.diff_p.toFixed(3)+' €' : '—';
+    const ddCls = d.diff_d < 0 ? 'c-green' : d.diff_d > 0 ? 'c-red' : '';
+    const dpCls = d.diff_p < 0 ? 'c-green' : d.diff_p > 0 ? 'c-red' : '';
+
+    return `<tr>
+      <td class="${rowCls}" style="font-weight:${isDE?'700':'400'}">${d.country}${isDE?' 🏠':''}</td>
+      <td class="${rowCls}">${fd}</td>
+      <td>${fp}</td>
+      <td class="${ddCls}">${dd}</td>
+      <td class="${dpCls}">${dp}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tbody-eu').innerHTML = rows;
+}
+
+// ── Sortierung ─────────────────────────────────────────
+function sortTable(tab, col) {
+  if (sortState[tab].col === col) {
+    sortState[tab].asc = !sortState[tab].asc;
+  } else {
+    sortState[tab].col = col;
+    sortState[tab].asc = true;
+  }
+  if (tab === 'de') renderStations();
+  else renderEU();
+}
+
+// ── Start ──────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
