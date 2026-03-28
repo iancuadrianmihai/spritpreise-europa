@@ -3,11 +3,11 @@ Spritpreise Europa - Flask Webapp
 Standort automatisch via IP · Diesel & E10 Preise
 """
 
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, render_template, jsonify, request
 import requests
 import os
 
-app = Flask(__name__, template_folder=".")
+app = Flask(__name__)
 
 TANKERKOENIG_API_KEY = os.environ.get("TANKERKOENIG_API_KEY", "00000000-0000-0000-0000-000000000000")
 DEFAULT_RADIUS = 30  # km
@@ -98,7 +98,7 @@ def get_eu_prices():
 
 @app.route("/")
 def index():
-    return send_from_directory("templates", "index.html")
+    return render_template("index.html")
 
 
 @app.route("/api/location")
