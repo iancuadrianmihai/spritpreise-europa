@@ -437,7 +437,7 @@
           <thead>
             <tr>
               <th onclick="sortTable('de','diesel')">Diesel</th>
-              <th onclick="sortTable('de','e5')">E5</th>
+              <th onclick="sortTable('de','e10')">E10</th>
               <th onclick="sortTable('de','brand')">Marke</th>
               <th onclick="sortTable('de','place')">Adresse</th>
               <th onclick="sortTable('de','dist')">Entfernung</th>
@@ -663,7 +663,7 @@ function renderStations() {
 
     return `<tr>
       <td class="${dCls} ${cls}" style="font-weight:700">${fp(s.diesel)}</td>
-      <td class="${cls}">${fp(s.e5)}</td>
+      <td class="${cls}">${fp(s.e10)}</td>
       <td class="${cls}">${s.brand || '—'}</td>
       <td class="${cls}">${[s.street ? s.street + (s.houseNumber ? ' ' + s.houseNumber : '') : '', s.place].filter(Boolean).join(', ') || '—'}</td>
       <td class="${cls}">${typeof s.dist === 'number' ? s.dist.toFixed(1)+' km' : '—'}</td>
@@ -801,18 +801,18 @@ const TRANSLATIONS = {
     gps_error: '⚠️ GPS Fehler: ',
     gps_na: '⚠️ GPS nicht verfügbar',
     avg_diesel: '⌀ Diesel',
-    avg_e5: '⌀ E5',
+    avg_e10: '⌀ E10',
     best_diesel: '💚 Günstigstes Diesel',
-    best_e5: '💚 Günstigstes E5',
+    best_e5: '💚 Günstigstes E10',
     stations: 'Tankstellen',
     radius: 'Tankstellen im 30 km-Umkreis',
     refresh: '🔄 Aktualisieren',
     col_diesel: 'Diesel',
-    col_e5: 'E5',
+    col_e5: 'Super 95',
     col_brand: 'Marke',
     col_city: 'Ort',
     col_street: 'Straße',
-    col_status: 'Status',
+    col_status: 'Open',
     open: '✔',
     closed: '✘',
     cheap_diesel: '💚 Günstigstes Diesel',
@@ -840,18 +840,18 @@ const TRANSLATIONS = {
     gps_error: '⚠️ GPS Error: ',
     gps_na: '⚠️ GPS not available',
     avg_diesel: '⌀ Diesel',
-    avg_e5: '⌀ E5',
+    avg_e10: '⌀ E10',
     best_diesel: '💚 Cheapest Diesel',
     best_e5: '💚 Cheapest E5',
     stations: 'Stations',
     radius: 'Stations within 30 km',
     refresh: '🔄 Refresh',
     col_diesel: 'Diesel',
-    col_e5: 'E5',
+    col_e5: 'Super 95',
     col_brand: 'Brand',
-    col_city: 'City',
-    col_street: 'Street',
-    col_status: 'Status',
+    col_city: 'Address',
+    col_street: 'Distance',
+    col_status: 'Open',
     open: '✔',
     closed: '✘',
     cheap_diesel: '💚 Cheapest Diesel',
@@ -899,9 +899,9 @@ function applyLang() {
     thsDe[0].textContent = T.col_diesel;
     thsDe[1].textContent = T.col_e5;
     thsDe[2].textContent = T.col_brand;
-    thsDe[3].textContent = T.col_city;
-    thsDe[4].textContent = T.col_street;
-    thsDe[5].textContent = T.col_status;
+    thsDe[3].textContent = currentLang === 'en' ? 'Address' : 'Adresse';
+    thsDe[4].textContent = currentLang === 'en' ? 'Distance' : 'Entfernung';
+    thsDe[5].textContent = currentLang === 'en' ? 'Open' : 'Geöffnet';
   }
   // Table headers EU
   const thsEu = document.querySelectorAll('#table-eu thead th');
@@ -914,7 +914,7 @@ function applyLang() {
   }
   // Stat labels
   const labels = document.querySelectorAll('.stat-label');
-  const labelKeys = ['avg_diesel', 'avg_e5', 'best_diesel', 'stations'];
+  const labelKeys = ['avg_diesel', 'avg_e10', 'best_diesel', 'stations'];
   labels.forEach((el, i) => { if (labelKeys[i]) el.textContent = T[labelKeys[i]]; });
   // Table title
   const title = document.querySelector('.table-title');
